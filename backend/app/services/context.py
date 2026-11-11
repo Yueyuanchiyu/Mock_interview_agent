@@ -83,6 +83,7 @@ class ContextService:
 
         return {
             "contexts": self.budget.pack(deduplicated),
+            "raw_contexts": deduplicated,
             "retrieval_trace": traces,
             "keywords": keywords,
         }

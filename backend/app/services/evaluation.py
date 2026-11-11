@@ -12,8 +12,8 @@ from app.agent.prompts import (
     followup_prompt,
     summary_prompt,
 )
+from app.agent.llm_guard import invoke_structured
 from app.core.logging import Logger
-from app.infrastructure.llm import get_chat_model
 from app.schemas.llm import AnswerEvaluation, FollowupDecision, InterviewSummary
 
 
@@ -32,18 +32,16 @@ class EvaluationService:
         prompt = evaluation_prompt(
             role_name, question, answer_text, reference_context, expression_metrics
         )
-        try:
-            model = get_chat_model(thinking=True).with_structured_output(AnswerEvaluation)
-            result = await model.ainvoke(
-                [
-                    SystemMessage(content=EVALUATION_SYSTEM_PROMPT),
-                    HumanMessage(content=prompt),
-                ]
-            )
-            return result.model_dump()
-        except Exception as exc:
-            logger.warning("LLM 结构化评分失败，使用规则降级: %s", exc)
-            return self._fallback(answer_text, expression_metrics)
+        result = await invoke_structured(
+            AnswerEvaluation,
+            [
+                SystemMessage(content=EVALUATION_SYSTEM_PROMPT),
+                HumanMessage(content=prompt),
+            ],
+            thinking=True,
+            fallback=lambda: self._fallback(answer_text, expression_metrics),
+        )
+        return result.model_dump()
 
     async def generate_dynamic_followup(
         self,
@@ -62,18 +60,16 @@ class EvaluationService:
             latest_answer,
             reference_context,
         )
-        try:
-            model = get_chat_model(thinking=False).with_structured_output(FollowupDecision)
-            result = await model.ainvoke(
-                [
-                    SystemMessage(content=FOLLOWUP_SYSTEM_PROMPT),
-                    HumanMessage(content=prompt),
-                ]
-            )
-            return result.question.strip()
-        except Exception as exc:
-            logger.warning("动态追问失败: %s", exc)
-            return ""
+        result = await invoke_structured(
+            FollowupDecision,
+            [
+                SystemMessage(content=FOLLOWUP_SYSTEM_PROMPT),
+                HumanMessage(content=prompt),
+            ],
+            thinking=False,
+            fallback=lambda: FollowupDecision(question=""),
+        )
+        return result.question.strip()
 
     async def generate_summary(
         self,
@@ -82,21 +78,21 @@ class EvaluationService:
         recommendations: List[Dict[str, Any]],
     ) -> str:
         prompt = summary_prompt(role_name, rounds, recommendations)
-        try:
-            model = get_chat_model(thinking=True).with_structured_output(InterviewSummary)
-            result = await model.ainvoke(
-                [
-                    SystemMessage(content=SUMMARY_SYSTEM_PROMPT),
-                    HumanMessage(content=prompt),
-                ]
-            )
-            return result.summary.strip()
-        except Exception as exc:
-            logger.warning("LLM 总结失败，使用模板降级: %s", exc)
-            return (
-                "本次模拟面试已完成。建议继续围绕核心技术原理、项目细节和"
-                "结构化表达进行针对性练习。"
-            )
+        result = await invoke_structured(
+            InterviewSummary,
+            [
+                SystemMessage(content=SUMMARY_SYSTEM_PROMPT),
+                HumanMessage(content=prompt),
+            ],
+            thinking=True,
+            fallback=lambda: InterviewSummary(
+                summary=(
+                    "本次模拟面试已完成。建议继续围绕核心技术原理、项目细节和"
+                    "结构化表达进行针对性练习。"
+                )
+            ),
+        )
+        return result.summary.strip()
 
     @staticmethod
     def _fallback(
@@ -134,5 +130,5 @@ class EvaluationService:
                 if need_followup
                 else ""
             ),
-        ).model_dump()
+        )
 

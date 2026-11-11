@@ -10,6 +10,7 @@ from typing import Any, Dict, List
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 
+from app.agent.llm_guard import prepare_context
 from app.agent.memory import AgentMemoryStore
 from app.agent.resource_agent import ResourceAdvisorAgent
 from app.agent.state import InterviewState
@@ -283,12 +284,9 @@ class InterviewAgentWorkflow:
             question,
             answer_text,
         )
-        memory_context = _memory_context(
-            long_term_memory, session["role_code"]
+        contexts = await prepare_context(
+            long_term_memory, session["role_code"], context["raw_contexts"]
         )
-        contexts = context["contexts"]
-        if memory_context:
-            contexts = [memory_context, *contexts]
         analysis = await self.evaluator.evaluate_answer(
             role_name,
             question,
@@ -392,6 +390,7 @@ class InterviewAgentWorkflow:
             question,
             latest_answer,
         )
+        contexts = await prepare_context({}, session["role_code"], context["raw_contexts"])
         turns = await asyncio.to_thread(
             self.interview_repository.list_followup_turns, session_id, question_no
         )
@@ -406,7 +405,7 @@ class InterviewAgentWorkflow:
             current_round.get("answer_text") or "",
             history,
             latest_answer,
-            context["contexts"],
+            contexts,
         )
         if not next_question:
             return {"result": self._followup_stop(session_id, question_no, followup_no, "本题追问已结束")}
@@ -767,14 +766,6 @@ def _lines(value: Any) -> List[str]:
     if isinstance(value, list):
         return [str(item) for item in value if str(item).strip()]
     return [line for line in str(value or "").splitlines() if line.strip()]
-
-
-def _memory_context(profile: Dict[str, Any], role_code: str) -> str:
-    role_memory = (profile.get("roles") or {}).get(role_code) or {}
-    weaknesses = role_memory.get("recurring_weaknesses") or []
-    if not weaknesses:
-        return ""
-    return "长期记忆中的重复薄弱点：" + "、".join(str(item) for item in weaknesses[-6:])
 
 
 def _normalize(value: Any) -> Any:

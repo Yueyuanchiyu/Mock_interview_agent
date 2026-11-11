@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import List
 
 from langchain.agents import create_agent
+from langchain.agents.middleware import SummarizationMiddleware, ToolRetryMiddleware
 from langchain_core.messages import HumanMessage
 
 from app.agent.prompts import TOOL_AGENT_SYSTEM_PROMPT
 from app.agent.tools import AgentToolFactory
+from app.core.config import settings
 from app.core.logging import Logger
 from app.infrastructure.llm import get_chat_model
 
@@ -27,6 +29,13 @@ class ResourceAdvisorAgent:
                 model=get_chat_model(thinking=False),
                 tools=self.tools,
                 system_prompt=TOOL_AGENT_SYSTEM_PROMPT,
+                middleware=[
+                    SummarizationMiddleware(
+                        model=get_chat_model(thinking=False),
+                        trigger=("tokens", settings.advisor_summary_trigger_tokens),
+                    ),
+                    ToolRetryMiddleware(max_retries=2),
+                ],
             )
         return self._agent
 

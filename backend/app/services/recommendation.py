@@ -5,9 +5,9 @@ from typing import Any, Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from app.agent.llm_guard import invoke_structured
 from app.agent.prompts import RESOURCE_SYSTEM_PROMPT, resource_prompt
 from app.core.logging import Logger
-from app.infrastructure.llm import get_chat_model
 from app.repositories.resource import ResourceRepository
 from app.schemas.llm import ResourceSelection
 from app.services.question import QuestionService
@@ -38,18 +38,19 @@ class RecommendationService:
             return []
         role_name = self.question_service.get_role_name(role_code)
         prompt = resource_prompt(role_name, keywords, candidates)
-        try:
-            model = get_chat_model(thinking=True).with_structured_output(ResourceSelection)
-            result = await model.ainvoke(
-                [
-                    SystemMessage(content=RESOURCE_SYSTEM_PROMPT),
-                    HumanMessage(content=prompt),
-                ]
-            )
-            return self._merge(candidates, result.model_dump()["resources"])
-        except Exception as exc:
-            logger.warning("LLM 资源排序失败，使用候选顺序: %s", exc)
+        selection = await invoke_structured(
+            ResourceSelection,
+            [
+                SystemMessage(content=RESOURCE_SYSTEM_PROMPT),
+                HumanMessage(content=prompt),
+            ],
+            thinking=True,
+            fallback=lambda: ResourceSelection(resources=[]),
+        )
+        choices = [item.model_dump() for item in selection.resources]
+        if not choices:
             return self._fallback(candidates, keywords)
+        return self._merge(candidates, choices)
 
     @staticmethod
     def extract_weakness_keywords(rounds: List[Dict[str, Any]]) -> List[str]:

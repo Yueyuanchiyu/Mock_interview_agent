@@ -54,6 +54,9 @@ class Settings:
         self.deepseek_api_base = os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com")
         self.deepseek_model = os.getenv("DEEPSEEK_MODEL", "deepseek-flash")
         self.deepseek_thinking = _env_bool("DEEPSEEK_THINKING", True)
+        self.enable_context_compression = _env_bool("ENABLE_CONTEXT_COMPRESSION", True)
+        self.context_compression_trigger_tokens = int(os.getenv("CONTEXT_COMPRESSION_TRIGGER_TOKENS", "3500"))
+        self.advisor_summary_trigger_tokens = int(os.getenv("ADVISOR_SUMMARY_TRIGGER_TOKENS", "3000"))
         self.llm_temperature = float(os.getenv("LLM_TEMPERATURE", "0.2"))
         self.llm_timeout_seconds = float(os.getenv("LLM_TIMEOUT_SECONDS", "90"))
 
