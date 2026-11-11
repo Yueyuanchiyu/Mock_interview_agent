@@ -38,7 +38,7 @@ class EvaluationService:
                 SystemMessage(content=EVALUATION_SYSTEM_PROMPT),
                 HumanMessage(content=prompt),
             ],
-            thinking=True,
+            thinking=False,
             fallback=lambda: self._fallback(answer_text, expression_metrics),
         )
         return result.model_dump()
@@ -84,7 +84,7 @@ class EvaluationService:
                 SystemMessage(content=SUMMARY_SYSTEM_PROMPT),
                 HumanMessage(content=prompt),
             ],
-            thinking=True,
+            thinking=False,
             fallback=lambda: InterviewSummary(
                 summary=(
                     "本次模拟面试已完成。建议继续围绕核心技术原理、项目细节和"

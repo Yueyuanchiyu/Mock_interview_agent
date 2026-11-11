@@ -44,7 +44,7 @@ class RecommendationService:
                 SystemMessage(content=RESOURCE_SYSTEM_PROMPT),
                 HumanMessage(content=prompt),
             ],
-            thinking=True,
+            thinking=False,
             fallback=lambda: ResourceSelection(resources=[]),
         )
         choices = [item.model_dump() for item in selection.resources]
