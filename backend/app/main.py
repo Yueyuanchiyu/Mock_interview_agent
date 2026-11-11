@@ -26,8 +26,8 @@ logger = Logger.get_logger(__name__)
 async def lifespan(app: FastAPI):
     if settings.jwt_secret == "replace-with-a-long-random-secret":
         logger.warning("JWT_SECRET 仍为默认值，请在生产环境立即替换")
-    if not settings.openai_api_key:
-        logger.warning("OPENAI_API_KEY 未配置，LLM 能力将使用规则降级")
+    if not settings.deepseek_api_key:
+        logger.warning("DEEPSEEK_API_KEY 未配置，LLM 能力将使用规则降级")
     async with create_checkpointer() as checkpointer:
         app.state.auth_service = AuthService()
         app.state.agent_workflow = InterviewAgentWorkflow(checkpointer)

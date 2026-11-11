@@ -24,7 +24,7 @@ class ResourceAdvisorAgent:
     def _build(self):
         if self._agent is None:
             self._agent = create_agent(
-                model=get_chat_model(),
+                model=get_chat_model(thinking=False),
                 tools=self.tools,
                 system_prompt=TOOL_AGENT_SYSTEM_PROMPT,
             )

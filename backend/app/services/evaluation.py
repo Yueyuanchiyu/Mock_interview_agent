@@ -33,7 +33,7 @@ class EvaluationService:
             role_name, question, answer_text, reference_context, expression_metrics
         )
         try:
-            model = get_chat_model().with_structured_output(AnswerEvaluation)
+            model = get_chat_model(thinking=True).with_structured_output(AnswerEvaluation)
             result = await model.ainvoke(
                 [
                     SystemMessage(content=EVALUATION_SYSTEM_PROMPT),
@@ -63,7 +63,7 @@ class EvaluationService:
             reference_context,
         )
         try:
-            model = get_chat_model().with_structured_output(FollowupDecision)
+            model = get_chat_model(thinking=False).with_structured_output(FollowupDecision)
             result = await model.ainvoke(
                 [
                     SystemMessage(content=FOLLOWUP_SYSTEM_PROMPT),
@@ -83,7 +83,7 @@ class EvaluationService:
     ) -> str:
         prompt = summary_prompt(role_name, rounds, recommendations)
         try:
-            model = get_chat_model().with_structured_output(InterviewSummary)
+            model = get_chat_model(thinking=True).with_structured_output(InterviewSummary)
             result = await model.ainvoke(
                 [
                     SystemMessage(content=SUMMARY_SYSTEM_PROMPT),

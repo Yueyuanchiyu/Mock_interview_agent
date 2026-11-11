@@ -50,9 +50,10 @@ class Settings:
         self.from_email = os.getenv("FROM_EMAIL", "")
         self.email_password = os.getenv("EMAIL_PASSWORD", "")
 
-        self.openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("DASHSCOPE_API_KEY", "")
-        self.openai_api_base = os.getenv("OPENAI_API_BASE", "")
-        self.model_name = os.getenv("MODEL_NAME", "qwen3.5-plus")
+        self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        self.deepseek_api_base = os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com")
+        self.deepseek_model = os.getenv("DEEPSEEK_MODEL", "deepseek-flash")
+        self.deepseek_thinking = _env_bool("DEEPSEEK_THINKING", True)
         self.llm_temperature = float(os.getenv("LLM_TEMPERATURE", "0.2"))
         self.llm_timeout_seconds = float(os.getenv("LLM_TIMEOUT_SECONDS", "90"))
 

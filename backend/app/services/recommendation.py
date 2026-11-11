@@ -39,7 +39,7 @@ class RecommendationService:
         role_name = self.question_service.get_role_name(role_code)
         prompt = resource_prompt(role_name, keywords, candidates)
         try:
-            model = get_chat_model().with_structured_output(ResourceSelection)
+            model = get_chat_model(thinking=True).with_structured_output(ResourceSelection)
             result = await model.ainvoke(
                 [
                     SystemMessage(content=RESOURCE_SYSTEM_PROMPT),
