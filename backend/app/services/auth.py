@@ -29,10 +29,6 @@ class AuthService:
         self.email_sender = email_sender or EmailSender()
 
     def send_code(self, email: str) -> Dict[str, object]:
-        user = self.repository.get_user_by_email(email)
-        if not user:
-            raise DomainError("该邮箱尚未注册", status_code=404, error_code="EMAIL_NOT_FOUND")
-
         redis_client = get_redis()
         cooldown_key = f"auth:code:cooldown:{email}"
         try:
@@ -77,7 +73,8 @@ class AuthService:
 
         user = self.repository.get_user_by_email(email)
         if not user:
-            raise DomainError("该邮箱尚未注册", status_code=404, error_code="EMAIL_NOT_FOUND")
+            user_name = email.split("@", 1)[0].strip() or "新用户"
+            user = self.repository.create_user(email, user_name)
 
         redis_client.delete(f"auth:code:{email}", f"auth:code:cooldown:{email}")
         token = self._create_token(str(user["email"]))

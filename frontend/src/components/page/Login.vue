@@ -130,7 +130,7 @@ async function login() {
         <div class="panel-header">
           <div>
             <div class="panel-caption">Welcome back</div>
-            <h2>邮箱验证码登录</h2>
+            <h2>邮箱验证码登录 / 注册</h2>
           </div>
           <div class="panel-dot"></div>
         </div>
@@ -162,7 +162,7 @@ async function login() {
 
             <el-button class="submit-btn" type="primary" :loading="loggingIn" :disabled="loggingIn || sending" @click="login">
               <el-icon><Promotion /></el-icon>
-              <span>立即登录</span>
+              <span>登录 / 注册</span>
             </el-button>
           </el-form>
         </div>

@@ -15,3 +15,12 @@ class AuthRepository:
                 )
                 return cursor.fetchone()
 
+    def create_user(self, email: str, user_name: str) -> Optional[Dict[str, Any]]:
+        with get_conn() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO user_info (user_name, email) VALUES (%s, %s)",
+                    (user_name, email),
+                )
+        return self.get_user_by_email(email)
+
