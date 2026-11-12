@@ -57,13 +57,14 @@ def split_documents(
     for doc in documents:
         source_table = str(doc.metadata.get("source_table", ""))
         source_id = str(doc.metadata.get("source_id", ""))
+        doc_type = str(doc.metadata.get("type", ""))
         for index, text in enumerate(splitter.split_text(doc.page_content)):
             text = text.strip()
             if not text:
                 continue
             metadata = {k: v for k, v in doc.metadata.items() if v is not None}
             metadata["chunk_index"] = index
-            chunk_id = f"{source_table}:{source_id}:{index}"
+            chunk_id = f"{source_table}:{source_id}:{doc_type}:{index}"
             chunks.append((chunk_id, text, metadata))
     return chunks
 
