@@ -66,7 +66,9 @@ class Settings:
         self.enable_vector_rag = _env_bool("ENABLE_VECTOR_RAG", True)
         self.vector_db_dir = os.getenv("VECTOR_DB_DIR", "vector_db")
         self.vector_collection_name = os.getenv("VECTOR_COLLECTION_NAME", "knowledge_base")
-        self.embedding_model_name = os.getenv("EMBEDDING_MODEL_NAME", "BAAI/bge-small-zh-v1.5")
+        self.embedding_model_name = os.getenv("EMBEDDING_MODEL_NAME", "qwen3.7-text-embedding-flash")
+        self.embedding_api_key = os.getenv("DASHSCOPE_API_KEY", "")
+        self.embedding_api_base = os.getenv("EMBEDDING_API_BASE", "https://cn-beijing.maas.qianwenaiapi.com/api/v1")
         self.rag_top_k = int(os.getenv("RAG_TOP_K", "5"))
 
         self.context_max_tokens = int(os.getenv("CONTEXT_MAX_TOKENS", "5000"))

@@ -4,10 +4,10 @@ from dataclasses import asdict, dataclass
 from typing import Any, Dict, List
 
 import chromadb
-from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
 from app.core.config import settings
 from app.core.logging import Logger
+from app.infrastructure.embedding import CloudEmbeddingFunction
 
 
 logger = Logger.get_logger(__name__)
@@ -39,8 +39,10 @@ class KnowledgeRetriever:
             return None
 
         try:
-            embedding_fn = SentenceTransformerEmbeddingFunction(
-                model_name=settings.embedding_model_name
+            embedding_fn = CloudEmbeddingFunction(
+                api_key=settings.embedding_api_key,
+                model=settings.embedding_model_name,
+                base_url=settings.embedding_api_base,
             )
             client = chromadb.PersistentClient(path=str(settings.vector_db_path))
             self._collection = client.get_collection(
